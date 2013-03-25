@@ -1,10 +1,8 @@
 (put 'dired-find-alternate-file 'disabled nil)
 
-;; Set the initial frame size and position
-(add-to-list 'default-frame-alist '(top . 22))
-(add-to-list 'default-frame-alist '(left . 0))
-(add-to-list 'default-frame-alist '(height . 76))
-(add-to-list 'default-frame-alist '(width . 100))
+;; Load any machine-specific customizations first.
+(add-to-list 'load-path "~/.emacs.d")
+(load "local" 'missing-ok)
 
 ;; Add the marmalade repo to the list of repositories.
 (require 'package)

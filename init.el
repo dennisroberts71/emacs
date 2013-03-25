@@ -45,7 +45,7 @@
   (when (not (package-installed-p p))
     (package-install p)))
 
-(add-to-list 'load-path "/usr/local/git/share/git-core/contrib/emacs")
+(add-to-list 'load-path "/usr/local/share/git-core/contrib/emacs")
 
 ;; Use cperl mode instead of the default perl mode.
 (defalias 'perl-mode 'cperl-mode)

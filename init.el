@@ -26,6 +26,7 @@
     inf-ruby
     levenshtein
     magit
+    markdown-mode
     nrepl
     nrepl-ritz
     paredit

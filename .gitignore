@@ -1,0 +1,10 @@
+backups
+auto-save-list
+*elc
+.DS_Store
+.smex*
+*.tar*
+places
+tramp
+*~
+\#*

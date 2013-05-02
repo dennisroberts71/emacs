@@ -92,6 +92,11 @@
 ;; Enable rainbow delimiters for clojure mode.
 (add-hook 'clojure-mode-hook 'rainbow-delimiters-mode)
 
+;; Restore the original keybinding for paredit-wrap-round.
+(add-hook 'paredit-mode-hook
+          '(lambda ()
+             (define-key paredit-mode-map "\M-(" 'paredit-wrap-round)))
+
 ;; Some more useful keybindings for clojure mode.
 (add-hook 'clojure-mode-hook
           '(lambda ()

@@ -16,7 +16,8 @@
   (package-refresh-contents))
 
 (defvar my-packages
-  '(clojure-mode
+  '(ac-nrepl
+    clojure-mode
     clojure-project-mode
     clojure-test-mode
     clojurescript-mode
@@ -27,6 +28,7 @@
     levenshtein
     magit
     markdown-mode
+    melpa
     nrepl
     nrepl-ritz
     paredit
@@ -63,7 +65,7 @@
  '(cperl-indent-level 4)
  '(cperl-indent-parens-as-block t)
  '(cperl-tab-always-indent t)
- '(safe-local-variable-values (quote ((nrepl-history-file . \.nrepl-history\.eld)))))
+ '(safe-local-variable-values (quote ((define-clojure-indent (optional-routes (quote defun)) (GET 2) (POST 2) (PUT 2) (DELETE 2) (HEAD 2) (ANY 2) (context 2)) (define-clojure-indent (quote defun)) (eval define-clojure-indent (trap (quote defun))) (nrepl-history-file . \.nrepl-history\.eld)))))
 
 ;; Insert spaces instead of tabs.
 (setq-default indent-tabs-mode nil)
@@ -105,6 +107,27 @@
           '(lambda ()
              (define-key clojure-mode-map "\M-{" 'paredit-wrap-curly)))
 
+;; Configure NREPL.
+(require 'nrepl)
+(setq nrepl-hide-special-buffers t)
+(setq nrepl-popup-stacktraces-in-repl t)
+
+;; Some default eldoc facilities.
+(add-hook 'nrepl-connected-hook
+          (lambda ()
+            (add-hook 'clojure-mode-hook 'turn-on-eldoc-mode)
+            (add-hook 'nrepl-interaction-mode-hook 'nrepl-turn-on-eldoc-mode)
+            (nrepl-enable-on-existing-clojure-buffers)))
+
+;; REPL mode hook.
+(add-hook 'nrepl-mode-hook 'subword-mode)
+
+;; Auto completion for NREPL.
+(require 'ac-nrepl)
+(eval-after-load "auto-complete"
+  '(add-to-list 'ac-modes 'nrepl-mode))
+(add-hook 'nrepl-mode-hook 'ac-nrepl-setup)
+
 ;; Automatically use markdown mode for files with a .md or .markdown extension.
 (setq auto-mode-alist (cons '("\\.markdown$" . markdown-mode) auto-mode-alist))
 (setq auto-mode-alist (cons '("\\.md$" . markdown-mode) auto-mode-alist))
@@ -124,3 +147,9 @@
 
 ;; Provide a keybinding for setting the frame name.
 (global-set-key (kbd "s-I") 'set-frame-name)
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )

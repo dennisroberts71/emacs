@@ -81,7 +81,7 @@
 ;; Copyright (C) 2012 Romain Francoise.
 ;; Copyright (C) 2012 Ron Parker.
 ;; Copyright (C) 2012 Ryan C. Thompson.
-;; Copyright (C) 2009, 2010, 2011, 2012, 2013 Rémi Vanicat.
+;; Copyright (C) 2009-2013 Rémi Vanicat.
 ;; Copyright (C) 2011, 2012 Rüdiger Sonderfeld.
 ;; Copyright (C) 2012 Samuel Bronson.
 ;; Copyright (C) 2010 Sean Bryant.
@@ -149,6 +149,7 @@
 (require 'easymenu)
 (require 'diff-mode)
 (require 'ansi-color)
+(require 'thingatpt)
 
 ;; Silences byte-compiler warnings
 (eval-and-compile
@@ -1031,13 +1032,12 @@ Read `completing-read' documentation for the meaning of the argument."
   (insert (magit-cmd-output cmd args)))
 
 (defun magit-cmd-output (cmd args)
-  (let ((cmd-output (with-output-to-string
-                      (with-current-buffer standard-output
-                        (apply #'process-file
-                               cmd
-                               nil (list t nil) nil
-                               args)))))
-    (ansi-color-apply cmd-output)))
+  (with-output-to-string
+    (with-current-buffer standard-output
+      (apply #'process-file
+             cmd
+             nil (list t nil) nil
+             args))))
 
 (defun magit-git-string (&rest args)
   (magit-trim-line (magit-git-output args)))
@@ -2693,7 +2693,7 @@ Please see the manual for a complete description of Magit.
           (funcall func)
         (when magit-refresh-needing-buffers
           (magit-revert-buffers dir)
-          (dolist (b (if (memq status-buffer magit-refresh-needing-buffers)
+          (dolist (b (if (not (memq status-buffer magit-refresh-needing-buffers))
                          (cons status-buffer magit-refresh-needing-buffers)
                        magit-refresh-needing-buffers))
             (magit-refresh-buffer b)))))))
@@ -3791,6 +3791,14 @@ insert a line to tell how to insert more of them"
     (magit-log-initialize-author-date-overlay)
     (magit-wash-sequence (apply-partially 'magit-wash-log-line style))
     (magit-log-create-author-date-overlay)))
+
+(defun magit-wash-color-log (&optional style)
+  (let ((ansi-color-apply-face-function
+         (lambda (beg end face)
+           (when face
+             (put-text-property beg end 'font-lock-face face)))))
+    (ansi-color-apply-on-region (point-min) (point-max)))
+  (magit-wash-log style))
 
 (defvar magit-currently-shown-commit nil)
 
@@ -5176,14 +5184,14 @@ environment (potentially empty)."
                                 (when gpg-sign '("-S")))))))))
     ;; shouldn't we kill that buffer altogether?
     (erase-buffer)
+    ;; potentially the local environment has been altered with settings that
+    ;; were specific to this commit. Let's revert it
+    (kill-local-variable 'process-environment)
     (let ((magit-buf magit-buffer-internal))
       (bury-buffer)
       (set-buffer magit-buf))
     (when (file-exists-p (concat (magit-git-dir) "MERGE_MSG"))
       (delete-file (concat (magit-git-dir) "MERGE_MSG")))
-    ;; potentially the local environment has been altered with settings that
-    ;; were specific to this commit. Let's revert it
-    (kill-local-variable 'process-environment)
     (magit-update-vc-modeline default-directory)
     (when magit-pre-log-edit-window-configuration
       (set-window-configuration magit-pre-log-edit-window-configuration)
@@ -5583,10 +5591,10 @@ With a non numeric prefix ARG, show all entries"
   (magit-create-log-buffer-sections
     (apply #'magit-git-section nil
            (magit-rev-range-describe range "Commits")
-           (apply-partially 'magit-wash-log style)
+           (apply-partially 'magit-wash-color-log style)
            `("log"
              ,(format "--max-count=%s" magit-log-cutoff-length)
-             ,"--abbrev-commit"
+             "--abbrev-commit"
              ,(format "--abbrev=%s" magit-sha1-abbrev-length)
              ,@(cond ((eq style 'long) (append
                                         (list "--stat" "-z")
@@ -5601,7 +5609,7 @@ With a non numeric prefix ARG, show all entries"
                      (t nil))
              ,@(if magit-have-decorate (list "--decorate=full"))
              ,@(if magit-have-graph (list "--graph"))
-             ,"--color"
+             "--color"
              ,@args
              "--"))))
 
@@ -6315,8 +6323,14 @@ Return values:
                       (magit-section-info section)))
          (old-editor (getenv "GIT_EDITOR")))
     (if (executable-find "emacsclient")
-        (setenv "GIT_EDITOR" (concat (executable-find "emacsclient")
-                                     " -s " server-name))
+        (setenv "GIT_EDITOR"
+                (cond ((string= server-name "server")
+                       (executable-find "emacsclient"))
+                      ((eq system-type 'windows-nt)
+                       (message "We don't know how to deal with non-default server name on windows")
+                       ())
+                      (t (concat (executable-find "emacsclient")
+                                 " -s " server-name))))
         (message "Cannot find emacsclient, using default git editor, please check your PATH"))
     (unwind-protect
         (magit-run-git-async "rebase" "-i"
@@ -6693,15 +6707,16 @@ This can be added to `magit-mode-hook' for example"
 (magit-define-command grep (&optional pattern)
   (interactive)
   (let ((pattern (or pattern
-                     (read-string "git grep: "))))
+                     (read-string "git grep: " (word-at-point)))))
     (with-current-buffer (generate-new-buffer "*Magit Grep*")
-      (insert magit-git-executable " "
-              (mapconcat 'identity magit-git-standard-options " ")
-              " grep -n "
-              (shell-quote-argument pattern) "\n\n")
-      (magit-git-insert (list "grep" "--line-number" pattern))
-      (grep-mode)
-      (pop-to-buffer (current-buffer)))))
+      (let ((default-directory (magit-get-top-dir default-directory)))
+        (insert magit-git-executable " "
+                (mapconcat 'identity magit-git-standard-options " ")
+                " grep -n "
+                (shell-quote-argument pattern) "\n\n")
+        (magit-git-insert (list "grep" "--line-number" pattern))
+        (grep-mode)
+        (pop-to-buffer (current-buffer))))))
 
 (provide 'magit)
 

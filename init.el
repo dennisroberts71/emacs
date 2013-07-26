@@ -65,7 +65,8 @@
  '(cperl-indent-level 4)
  '(cperl-indent-parens-as-block t)
  '(cperl-tab-always-indent t)
- '(safe-local-variable-values (quote ((define-clojure-indent (optional-routes (quote defun)) (GET 2) (POST 2) (PUT 2) (DELETE 2) (HEAD 2) (ANY 2) (context 2)) (define-clojure-indent (quote defun)) (eval define-clojure-indent (trap (quote defun))) (nrepl-history-file . \.nrepl-history\.eld)))))
+ '(safe-local-variable-values (quote ((define-clojure-indent (optional-routes (quote defun)) (GET 2) (POST 2) (PUT 2) (DELETE 2) (HEAD 2) (ANY 2) (context 2)) (define-clojure-indent (quote defun)) (eval define-clojure-indent (trap (quote defun))) (nrepl-history-file . \.nrepl-history\.eld))))
+ '(yaml-indent-offset 2))
 
 ;; Insert spaces instead of tabs.
 (setq-default indent-tabs-mode nil)

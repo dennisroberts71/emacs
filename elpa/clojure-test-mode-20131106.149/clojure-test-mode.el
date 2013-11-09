@@ -4,7 +4,7 @@
 
 ;; Author: Phil Hagelberg <technomancy@gmail.com>
 ;; URL: http://emacswiki.org/cgi-bin/wiki/ClojureTestMode
-;; Version: 20131021.1520
+;; Version: 20131106.149
 ;; X-Original-Version: 2.1.0
 ;; Keywords: languages, lisp, test
 ;; Package-Requires: ((clojure-mode "1.7") (cider "0.3.0"))
@@ -156,7 +156,9 @@
 ;; Support Functions
 
 (defun clojure-test-nrepl-connected-p ()
-  (nrepl-current-connection-buffer))
+  (condition-case nil
+      (nrepl-current-connection-buffer)
+    (error nil)))
 
 (defun clojure-test-make-handler (callback)
   (lexical-let ((buffer (current-buffer))
@@ -165,9 +167,9 @@
                                  (lambda (buffer value)
                                    (funcall callback buffer value))
                                  (lambda (buffer value)
-                                   (nrepl-emit-interactive-output value))
+                                   (cider-emit-interactive-output value))
                                  (lambda (buffer err)
-                                   (nrepl-emit-interactive-output err))
+                                   (cider-emit-interactive-output err))
                                  '())))
 
 (defun clojure-test-eval (string &optional handler)
@@ -456,7 +458,7 @@ Clojure src file for the given test namespace.")
                          (clojure-find-ns))))
     (nrepl-send-string-sync command)))
 
-(defun clojure-test-clear (&optional callback)
+(defun clojure-test-clear ()
   "Remove overlays and clear stored results."
   (interactive)
   (remove-overlays)

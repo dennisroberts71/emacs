@@ -19,7 +19,7 @@
 ;;;;;;  magit-remove-remote magit-add-remote magit-rename-branch
 ;;;;;;  magit-delete-branch magit-create-branch magit-checkout magit-unstage-all
 ;;;;;;  magit-stage-all magit-merge-abort magit-merge magit-status
-;;;;;;  magit-show-commit) "magit" "magit.el" (21114 36806))
+;;;;;;  magit-show-commit) "magit" "magit.el" (21117 32005))
 ;;; Generated autoloads from magit.el
 
 (autoload 'magit-show-commit "magit" "\
@@ -428,8 +428,8 @@ Run `gitk --all' for the current git repository.
 
 ;;;### (autoloads (magit-bisect-run magit-bisect-visualize magit-bisect-log
 ;;;;;;  magit-bisect-skip magit-bisect-bad magit-bisect-good magit-bisect-reset
-;;;;;;  magit-bisect-start) "magit-bisect" "magit-bisect.el" (21114
-;;;;;;  36806))
+;;;;;;  magit-bisect-start) "magit-bisect" "magit-bisect.el" (21117
+;;;;;;  32005))
 ;;; Generated autoloads from magit-bisect.el
 
 (autoload 'magit-bisect-start "magit-bisect" "\
@@ -475,7 +475,7 @@ Bisect automatically by running commands after each step.
 ;;;***
 
 ;;;### (autoloads (magit-blame-mode) "magit-blame" "magit-blame.el"
-;;;;;;  (21114 36806))
+;;;;;;  (21117 32005))
 ;;; Generated autoloads from magit-blame.el
 
 (autoload 'magit-blame-mode "magit-blame" "\
@@ -486,7 +486,7 @@ Display blame information inline.
 ;;;***
 
 ;;;### (autoloads (global-magit-wip-save-mode magit-wip-save-mode)
-;;;;;;  "magit-wip" "magit-wip.el" (21114 36806))
+;;;;;;  "magit-wip" "magit-wip.el" (21117 32005))
 ;;; Generated autoloads from magit-wip.el
 
 (autoload 'magit-wip-save-mode "magit-wip" "\
@@ -521,8 +521,8 @@ See `magit-wip-save-mode' for more information on Magit-Wip-Save mode.
 
 ;;;***
 
-;;;### (autoloads nil nil ("magit-key-mode.el" "magit-pkg.el") (21114
-;;;;;;  36806 589674))
+;;;### (autoloads nil nil ("magit-key-mode.el" "magit-pkg.el") (21117
+;;;;;;  32005 646161))
 
 ;;;***
 

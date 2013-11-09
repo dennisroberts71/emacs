@@ -10,7 +10,7 @@
 ;; URL: http://github.com/nonsequitur/inf-ruby
 ;; Created: 8 April 1998
 ;; Keywords: languages ruby
-;; Version: 20131106.106
+;; Version: 20131107.1319
 ;; X-Original-Version: 2.3.2
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -297,7 +297,9 @@ See variable `inf-ruby-buffer'."
   "Template for irb here document terminator.
 Must not contain ruby meta characters.")
 
-(defconst inf-ruby-eval-binding "IRB.conf[:MAIN_CONTEXT].workspace.binding")
+(defconst inf-ruby-eval-binding
+  (concat "(IRB.conf[:MAIN_CONTEXT] && IRB.conf[:MAIN_CONTEXT].workspace.binding) || "
+          "(defined?(Pry) && Pry.toplevel_binding)"))
 
 (defconst ruby-eval-separator "")
 
@@ -400,41 +402,37 @@ Then switch to the process buffer."
     (replace-regexp-in-string "\n" "\\\\n"
       (replace-regexp-in-string "\\\\" "\\\\\\\\" str))))
 
-(defsubst inf-ruby-fix-completions-on-windows (completions)
-  "Maybe remove the first item from COMPLETIONS.
-On Windows, the string received by `accept-process-output' starts
-with the last line that was sent to the Ruby process because the
-subprocess echoes input."
-  (if (eq system-type 'windows-nt)
-      (cdr completions)
-    completions))
-
 (defun inf-ruby-completions (expr)
   "Return a list of completions for the Ruby expression starting with EXPR."
   (let* ((proc (inf-ruby-proc))
          (line (buffer-substring (save-excursion (beginning-of-thing 'line))
                                  (point)))
          (comint-filt (process-filter proc))
-         (kept "") completions)
+         (kept "") completions
+         ;; Guard against running completions in parallel:
+         inf-ruby-at-top-level-prompt-p)
     (set-process-filter proc (lambda (proc string) (setq kept (concat kept string))))
-    (process-send-string
-     proc
-     (format (concat "if defined?(Pry.config) then "
-                     "completor = Pry.config.completer"
-                     ".build_completion_proc(binding, defined?(_pry_) ? _pry_ : Pry.new)"
-                     " elsif defined?(Bond.agent) && Bond.started? then "
-                     "completor = Bond.agent"
-                     " elsif defined?(IRB::InputCompletor::CompletionProc) then "
-                     "completor = IRB::InputCompletor::CompletionProc "
-                     "end and "
-                     "puts completor.call('%s', '%s').compact\n")
-             (ruby-escape-single-quoted expr)
-             (ruby-escape-single-quoted line)))
-    (while (and (not (string-match inf-ruby-prompt-pattern kept))
-                (accept-process-output proc 2)))
-    (setq completions (butlast (split-string kept "\r?\n") 2))
-    (setq completions (inf-ruby-fix-completions-on-windows completions))
-    (set-process-filter proc comint-filt)
+    (unwind-protect
+        (let ((completion-snippet
+               (format (concat "if defined?(Pry.config) then "
+                           "completor = Pry.config.completer"
+                           ".build_completion_proc(binding, defined?(_pry_) ? _pry_ : Pry.new)"
+                           " elsif defined?(Bond.agent) && Bond.started? then "
+                           "completor = Bond.agent"
+                           " elsif defined?(IRB::InputCompletor::CompletionProc) then "
+                           "completor = IRB::InputCompletor::CompletionProc "
+                           "end and "
+                           "puts completor.call('%s', '%s').compact\n")
+                   (ruby-escape-single-quoted expr)
+                   (ruby-escape-single-quoted line))))
+          (process-send-string proc completion-snippet)
+          (while (and (not (string-match inf-ruby-prompt-pattern kept))
+                      (accept-process-output proc 2)))
+          (setq completions (butlast (split-string kept "\r?\n") 2))
+          ;; Subprocess echoes output on Windows and OS X.
+          (when (and completions (string= (concat (car completions) "\n") completion-snippet))
+            (setq completions (cdr completions))))
+      (set-process-filter proc comint-filt))
     completions))
 
 (defconst inf-ruby-ruby-expr-break-chars " \t\n\"\'`><,;|&{(")

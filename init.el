@@ -16,7 +16,7 @@
   (package-refresh-contents))
 
 (defvar my-packages
-  '(ac-nrepl
+  '(cider
     clojure-mode
     clojure-project-mode
     clojure-test-mode
@@ -29,8 +29,6 @@
     magit
     markdown-mode
     melpa
-    nrepl
-    nrepl-ritz
     paredit
     project-mode
     rainbow-delimiters
@@ -65,7 +63,6 @@
  '(cperl-indent-level 4)
  '(cperl-indent-parens-as-block t)
  '(cperl-tab-always-indent t)
- '(safe-local-variable-values (quote ((eval setq nrepl-history-file (format "~/.%s.eld" (let ((dir (expand-file-name "clj-jargon/src/clj_jargon"))) (while (not (file-exists-p (format "%s/.git" dir))) (setq dir (file-name-directory (directory-file-name dir)))) (file-name-nondirectory (directory-file-name dir))))) (eval setq nrepl-history-file (format "~/.%s.eld" (setq dir (expand-file-name ".")) (while (not (file-exists-p (format "%s/.git" dir))) (setq dir (file-name-directory dir))) (file-name-nondirectory dir))) (eval setq nrepl-history-file (format "~/.%s.eld" (setq dir (expand-file-name ".")) (file-name-nondirectory (while (not (file-exists-p (format "%s/.git" dir))) (message "dir: %s" dir) (setq dir (file-name-directory dir)))))) (eval setq nrepl-history-file (format "~/.%s.eld" (file-name-nondirectory (setq dir (expand-file-name ".")) (while (not (file-exists-p (format "%s/.git" dir))) (message "dir: %s" dir) (setq dir (file-name-directory dir)))))) (eval setq nrepl-history-file (format "~/.%s.eld" (file-name-nondirectory (let ((dir (expand-file-name "."))) (while (not (file-exists-p (format "%s/.git" dir))) (message "dir: %s" dir) (setq dir (file-name-directory dir))))))) (eval setq nrepl-history-file (format "~/.%s.eld" (file-name-nondirectory (let ((dir (expand-file-name "."))) (message "dir: %s" dir) (while (not (file-exists-p (format "%s/.git" dir))) (setq dir (file-name-directory dir))))))) (eval setq nrepl-history-file (format "~/.%s.eld" (file-name-nondirectory (let ((dir (expand-file-name "."))) (while (not (file-exists-p (format "%s/.git" dir))) (setq dir (file-name-directory dir))))))) (eval setq nrepl-history-file (format "~/.%s.eld" (file-name-nondirectory (expand-file-name ".")))) (nrepl-history-file (eval setq nrepl-history-file (format "~/.%s.eld" (file-name-nondirectory (expand-file-name "."))))) (nrepl-history-file (eval format "~/.%s.eld" (file-name-nondirectory (expand-file-name ".")))) (nrepl-history-file (eval (format "~/.%s.eld" (file-name-nondirectory (expand-file-name "."))))) (nrepl-history-file format "~/.%s.eld" (file-name-nondirectory (expand-file-name "."))) (define-clojure-indent (optional-routes (quote defun)) (GET 2) (POST 2) (PUT 2) (DELETE 2) (HEAD 2) (ANY 2) (context 2)) (define-clojure-indent (quote defun)) (eval define-clojure-indent (trap (quote defun))) (nrepl-history-file . \.nrepl-history\.eld))))
  '(yaml-indent-offset 2))
 
 ;; Insert spaces instead of tabs.
@@ -107,27 +104,6 @@
 (add-hook 'clojure-mode-hook
           '(lambda ()
              (define-key clojure-mode-map "\M-{" 'paredit-wrap-curly)))
-
-;; Configure NREPL.
-(require 'nrepl)
-(setq nrepl-hide-special-buffers t)
-(setq nrepl-popup-stacktraces-in-repl t)
-
-;; Some default eldoc facilities.
-(add-hook 'nrepl-connected-hook
-          (lambda ()
-            (add-hook 'clojure-mode-hook 'turn-on-eldoc-mode)
-            (add-hook 'nrepl-interaction-mode-hook 'nrepl-turn-on-eldoc-mode)
-            (nrepl-enable-on-existing-clojure-buffers)))
-
-;; REPL mode hook.
-(add-hook 'nrepl-mode-hook 'subword-mode)
-
-;; Auto completion for NREPL.
-(require 'ac-nrepl)
-(eval-after-load "auto-complete"
-  '(add-to-list 'ac-modes 'nrepl-mode))
-(add-hook 'nrepl-mode-hook 'ac-nrepl-setup)
 
 ;; Automatically use markdown mode for files with a .md or .markdown extension.
 (setq auto-mode-alist (cons '("\\.markdown$" . markdown-mode) auto-mode-alist))

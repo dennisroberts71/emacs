@@ -63,6 +63,7 @@
  '(cperl-indent-level 4)
  '(cperl-indent-parens-as-block t)
  '(cperl-tab-always-indent t)
+ '(safe-local-variable-values (quote ((eval define-clojure-indent (trap (quote defun))) (whitespace-line-column . 80) (lexical-binding . t))))
  '(yaml-indent-offset 2))
 
 ;; Insert spaces instead of tabs.

@@ -16,7 +16,9 @@
   (package-refresh-contents))
 
 (defvar my-packages
-  '(cider
+  '(ac-nrepl
+    auto-complete
+    cider
     clojure-mode
     clojure-project-mode
     clojure-test-mode
@@ -105,6 +107,34 @@
 (add-hook 'clojure-mode-hook
           '(lambda ()
              (define-key clojure-mode-map "\M-{" 'paredit-wrap-curly)))
+
+;; Enable eldoc in Clojure buffers.
+(add-hook 'cider-mode-hook 'cider-turn-on-eldoc-mode)
+
+;; Hide special buffers.
+(setq nrepl-hide-special-buffers t)
+
+;; Make C-c C-z switch to the Cider REPL buffer in the current window.
+(setq cider-repl-display-in-current-window t)
+
+;; Add some helpful submodes to Cider.
+(add-hook 'cider-repl-mode-hook 'subword-mode)
+(add-hook 'cider-repl-mode-hook 'paredit-mode)
+(add-hook 'cider-repl-mode-hook 'rainbow-delimiters-mode)
+
+;; Enable auto-complete for Cider.
+(require 'ac-nrepl)
+(add-hook 'cider-repl-mode-hook 'ac-nrepl-setup)
+(add-hook 'cider-mode-hook 'ac-nrepl-setup)
+(eval-after-load "auto-complete"
+  '(add-to-list 'ac-modes 'cider-repl-mode))
+
+;; Use the tab key for auto-complete.
+(defun set-auto-complete-as-completion-at-point-function ()
+  (setq 'completion-at-point-functions '(auto-complete)))
+(add-hook 'auto-complete-mode-hook 'set-auto-complete-as-completion-at-point-function)
+(add-hook 'cider-repl-mode-hook 'set-auto-complete-as-completion-at-point-function)
+(add-hook 'cider-mode-hook 'set-auto-complete-as-completion-at-point-function)
 
 ;; Automatically use markdown mode for files with a .md or .markdown extension.
 (setq auto-mode-alist (cons '("\\.markdown$" . markdown-mode) auto-mode-alist))
